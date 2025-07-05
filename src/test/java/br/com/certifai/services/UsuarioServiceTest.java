@@ -1,7 +1,6 @@
 package br.com.certifai.services;
 
 import br.com.certifai.enums.Roles;
-import br.com.certifai.exception.ConflitoException;
 import br.com.certifai.exception.EntidadeNaoEncontradaException;
 import br.com.certifai.model.*;
 import br.com.certifai.repository.*;
@@ -57,32 +56,6 @@ class UsuarioServiceTest {
         when(usuarioRepository.findById(1L)).thenReturn(Optional.empty());
 
         assertThrows(EntidadeNaoEncontradaException.class, () -> usuarioService.buscarPorId(1L));
-    }
-
-    @Test
-    void deveCriarUsuarioComRoleEstudante() {
-        Usuario novoUsuario = new Usuario();
-        novoUsuario.setEmail("teste@email.com");
-        novoUsuario.setPassword("123");
-        novoUsuario.setRole(Roles.ESTUDANTE);
-
-        when(usuarioRepository.existsByEmail(novoUsuario.getEmail())).thenReturn(false);
-        when(passwordEncoder.encode("123")).thenReturn("hashed123");
-        when(usuarioRepository.save(any())).thenAnswer(i -> i.getArgument(0));
-
-        Usuario resultado = usuarioService.criar(novoUsuario);
-
-        assertEquals("hashed123", resultado.getPassword());
-    }
-
-    @Test
-    void naoDeveCriarUsuarioComEmailExistente() {
-        Usuario novoUsuario = new Usuario();
-        novoUsuario.setEmail("existente@email.com");
-
-        when(usuarioRepository.existsByEmail("existente@email.com")).thenReturn(true);
-
-        assertThrows(ConflitoException.class, () -> usuarioService.criar(novoUsuario));
     }
 
     @Test

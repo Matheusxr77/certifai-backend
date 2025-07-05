@@ -10,12 +10,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -52,39 +50,6 @@ class AuthControllerIntegrationTest {
         usuarioRepository.save(admin);
 
         adminToken = "Bearer " + authService.gerarToken(admin);
-    }
-
-    @Test
-    void deveRegistrarUsuarioComSucesso() throws Exception {
-        Usuario novoUsuario = new Usuario();
-        novoUsuario.setName("Usuário Novo");
-        novoUsuario.setEmail("novo@teste.com");
-        novoUsuario.setPassword("123456");
-        novoUsuario.setRole(Roles.ADMIN);
-
-        mockMvc.perform(post("/auth/register")
-                        .with(csrf())
-                        .header("Authorization", adminToken)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(novoUsuario)))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.message").value("Usuário criado com sucesso"))
-                .andExpect(jsonPath("$.data.email").value("novo@teste.com"));
-    }
-
-    @Test
-    void deveNegarAcessoAoRegistrarUsuarioSemToken() throws Exception {
-        Usuario novoUsuario = new Usuario();
-        novoUsuario.setName("Usuário Novo");
-        novoUsuario.setEmail("novo@teste.com");
-        novoUsuario.setPassword("123456");
-        novoUsuario.setRole(Roles.ESTUDANTE);
-
-        mockMvc.perform(post("/auth/register")
-                        .with(csrf())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(novoUsuario)))
-                .andExpect(status().isForbidden());
     }
 
     @Test

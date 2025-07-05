@@ -10,9 +10,7 @@ import br.com.certifai.service.interfaces.IUsuarioService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
-import java.net.URI;
 import java.util.List;
 
 @RestController
@@ -35,21 +33,6 @@ public class UsuarioController implements UsuarioApi {
     public ResponseEntity<AbstractResponse<UsuarioDTO>> buscarPorId(Long id) {
         UsuarioDTO usuario = usuarioMapper.toDTO(usuarioService.buscarPorId(id));
         return ResponseEntity.ok(AbstractResponse.success(usuario));
-    }
-
-    @Override
-    public ResponseEntity<AbstractResponse<UsuarioDTO>> criar(UsuarioDTO usuarioDTO) {
-        Usuario usuario = usuarioService.criar(usuarioMapper.toEntity(usuarioDTO));
-        UsuarioDTO usuarioCriado = usuarioMapper.toDTO(usuario);
-
-        URI location = ServletUriComponentsBuilder
-                .fromCurrentRequest()
-                .path("/{id}")
-                .buildAndExpand(usuario.getId())
-                .toUri();
-
-        return ResponseEntity.created(location)
-                .body(AbstractResponse.success(usuarioCriado, "Usuário criado com sucesso"));
     }
 
     @Override

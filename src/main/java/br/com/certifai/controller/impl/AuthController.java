@@ -10,6 +10,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Optional;
@@ -31,6 +33,15 @@ public class AuthController implements AuthApi {
         Usuario usuarioCriado = authService.createUser(user);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(AbstractResponse.success(usuarioCriado, "Usuário criado com sucesso"));
+    }
+
+    @Override
+    public ResponseEntity<String> verifyEmail(@RequestParam String token) {
+        if (authService.verifyEmail(token)) {
+            return ResponseEntity.ok("Seu e-mail foi verificado com sucesso! Você já pode fazer login.");
+        } else {
+            return ResponseEntity.badRequest().body("Token de verificação inválido ou expirado.");
+        }
     }
 
     @Override

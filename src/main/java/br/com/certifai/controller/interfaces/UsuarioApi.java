@@ -31,15 +31,6 @@ public interface UsuarioApi {
     })
     ResponseEntity<AbstractResponse<UsuarioDTO>> buscarPorId(@PathVariable("id") Long id);
 
-    @PostMapping
-    @Operation(summary = "Criar novo usuário")
-    @ApiResponses({
-            @ApiResponse(responseCode = "201", description = "Usuário criado com sucesso"),
-            @ApiResponse(responseCode = "400", description = "Dados inválidos"),
-            @ApiResponse(responseCode = "409", description = "Conflito - email já em uso")
-    })
-    ResponseEntity<AbstractResponse<UsuarioDTO>> criar(@RequestBody UsuarioDTO usuarioDTO);
-
     @PutMapping("/{id}")
     @Operation(summary = "Atualizar usuário")
     @ApiResponses({

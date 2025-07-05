@@ -1,176 +1,123 @@
 package br.com.certifai.controllers;
 
-import br.com.certifai.dto.UsuarioDTO;
 import br.com.certifai.enums.Roles;
-import br.com.certifai.mappers.IUsuarioMapper;
 import br.com.certifai.model.Usuario;
+import br.com.certifai.repository.UsuarioRepository;
 import br.com.certifai.requests.NovaSenhaRequest;
-import br.com.certifai.service.interfaces.IUsuarioService;
+import br.com.certifai.service.interfaces.IAuthService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
-import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.util.Collections;
-
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@Import(UsuarioControllerIntegrationTest.TestConfig.class)
 class UsuarioControllerIntegrationTest {
-
-    @TestConfiguration
-    static class TestConfig {
-
-        @Bean
-        public IUsuarioService usuarioService() {
-            return Mockito.mock(IUsuarioService.class);
-        }
-
-        @Bean
-        public IUsuarioMapper usuarioMapper() {
-            return Mockito.mock(IUsuarioMapper.class);
-        }
-    }
 
     @Autowired
     private MockMvc mockMvc;
 
     @Autowired
+    private UsuarioRepository usuarioRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private IAuthService authService;
+
+    @Autowired
     private ObjectMapper objectMapper;
 
-    @Autowired
-    private IUsuarioService usuarioService;
-
-    @Autowired
-    private IUsuarioMapper usuarioMapper;
+    private String adminToken;
 
     private Usuario usuario;
-    private UsuarioDTO usuarioDTO;
 
     @BeforeEach
     void setUp() {
-        usuario = Usuario.builder()
-                .id(1L)
-                .name("Ana Costa")
-                .email("ana.costa@email.com")
-                .password("senhaCriptografada")
-                .role(Roles.ADMIN)
-                .ativo(true)
-                .build();
+        usuarioRepository.deleteAll();
 
-        usuarioDTO = UsuarioDTO.builder()
-                .id(1L)
-                .name("Ana Costa")
-                .email("ana.costa@email.com")
-                .role(Roles.ADMIN)
-                .ativo(true)
-                .build();
+        usuario = new Usuario();
+        usuario.setName("Ana Costa");
+        usuario.setEmail("ana.costa@email.com");
+        usuario.setPassword(passwordEncoder.encode("senha123"));
+        usuario.setRole(Roles.ADMIN);
+        usuario.setAtivo(true);
+
+        usuarioRepository.save(usuario);
+
+        adminToken = "Bearer " + authService.gerarToken(usuario);
     }
 
     @Test
-    @DisplayName("Deve listar todos os usuários com sucesso")
-    @WithMockUser(roles = "ADMIN")
-    void deveListarTodosOsUsuariosComSucesso() throws Exception {
-        when(usuarioService.listarTodos()).thenReturn(Collections.singletonList(usuario));
-        when(usuarioMapper.toDTO(any(Usuario.class))).thenReturn(usuarioDTO);
-
-        mockMvc.perform(get("/usuarios"))
+    void deveListarUsuariosComSucesso() throws Exception {
+        mockMvc.perform(get("/usuarios")
+                        .with(csrf())
+                        .header("Authorization", adminToken))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success", is(true)))
-                .andExpect(jsonPath("$.data", hasSize(1)))
-                .andExpect(jsonPath("$.data[0].id", is(1)))
-                .andExpect(jsonPath("$.data[0].name", is("Ana Costa")));
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data").isArray())
+                .andExpect(jsonPath("$.data[0].email").value(usuario.getEmail()));
     }
 
     @Test
-    @DisplayName("Deve buscar um usuário por ID com sucesso")
-    @WithMockUser
     void deveBuscarUsuarioPorIdComSucesso() throws Exception {
-        when(usuarioService.buscarPorId(1L)).thenReturn(usuario);
-        when(usuarioMapper.toDTO(usuario)).thenReturn(usuarioDTO);
-
-        mockMvc.perform(get("/usuarios/{id}", 1L))
+        mockMvc.perform(get("/usuarios/{id}", usuario.getId())
+                        .with(csrf())
+                        .header("Authorization", adminToken))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.id", is(1)))
-                .andExpect(jsonPath("$.data.email", is("ana.costa@email.com")));
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.email").value(usuario.getEmail()));
     }
 
     @Test
-    @DisplayName("Deve criar um novo usuário com sucesso")
-    @WithMockUser(roles = "ADMIN")
-    void deveCriarUsuarioComSucesso() throws Exception {
-        when(usuarioMapper.toEntity(any(UsuarioDTO.class))).thenReturn(usuario);
-        when(usuarioService.criar(any(Usuario.class))).thenReturn(usuario);
-        when(usuarioMapper.toDTO(any(Usuario.class))).thenReturn(usuarioDTO);
-
-        mockMvc.perform(post("/usuarios")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(usuarioDTO)))
-                .andExpect(status().isCreated())
-                .andExpect(header().string("Location", "http://localhost/usuarios/1"))
-                .andExpect(jsonPath("$.message", is("Usuário criado com sucesso")));
-    }
-
-    @Test
-    @DisplayName("Deve atualizar um usuário com sucesso")
-    @WithMockUser(roles = "ADMIN")
     void deveAtualizarUsuarioComSucesso() throws Exception {
-        usuarioDTO.setName("Ana Costa Silva");
         usuario.setName("Ana Costa Silva");
 
-        when(usuarioMapper.toEntity(any(UsuarioDTO.class))).thenReturn(usuario);
-        when(usuarioService.atualizar(eq(1L), any(Usuario.class))).thenReturn(usuario);
-        when(usuarioMapper.toDTO(any(Usuario.class))).thenReturn(usuarioDTO);
+        String usuarioJson = objectMapper.writeValueAsString(usuario);
 
-        mockMvc.perform(put("/usuarios/{id}", 1L)
+        mockMvc.perform(put("/usuarios/{id}", usuario.getId())
+                        .with(csrf())
+                        .header("Authorization", adminToken)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(usuarioDTO)))
+                        .content(usuarioJson))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.name", is("Ana Costa Silva")))
-                .andExpect(jsonPath("$.message", is("Usuário atualizado com sucesso")));
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.message").value("Usuário atualizado com sucesso"))
+                .andExpect(jsonPath("$.data.name").value("Ana Costa Silva"));
     }
 
     @Test
-    @DisplayName("Deve alterar a senha de um usuário com sucesso")
-    @WithMockUser
     void deveAlterarSenhaComSucesso() throws Exception {
         NovaSenhaRequest novaSenhaRequest = new NovaSenhaRequest("novaSenhaSuperForte123");
-        doNothing().when(usuarioService).alterarSenha(1L, "novaSenhaSuperForte123");
+        String json = objectMapper.writeValueAsString(novaSenhaRequest);
 
-        mockMvc.perform(patch("/usuarios/{id}/senha", 1L)
+        mockMvc.perform(patch("/usuarios/{id}/senha", usuario.getId())
+                        .with(csrf())
+                        .header("Authorization", adminToken)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(novaSenhaRequest)))
+                        .content(json))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is("Senha alterada com sucesso")));
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.message").value("Senha alterada com sucesso"));
     }
 
     @Test
-    @DisplayName("Deve remover um usuário com sucesso")
-    @WithMockUser(roles = "ADMIN")
     void deveRemoverUsuarioComSucesso() throws Exception {
-        doNothing().when(usuarioService).remover(1L);
-
-        mockMvc.perform(delete("/usuarios/{id}", 1L))
+        mockMvc.perform(delete("/usuarios/{id}", usuario.getId())
+                        .with(csrf())
+                        .header("Authorization", adminToken))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is("Usuário removido com sucesso")));
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.message").value("Usuário removido com sucesso"));
     }
 }

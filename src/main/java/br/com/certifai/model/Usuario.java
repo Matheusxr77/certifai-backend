@@ -56,6 +56,15 @@ public class Usuario implements UserDetails {
     @Builder.Default
     private Boolean ativo = true;
 
+    @Column(name = "email_verified", nullable = false)
+    private boolean emailVerified = false;
+
+    @Column(name = "verification_token", unique = true, nullable = true)
+    private String verificationToken;
+
+    @Column(name = "token_expires_at", nullable = true)
+    private LocalDateTime tokenExpiresAt;
+
     @Override
     @JsonIgnore
     public Collection<? extends GrantedAuthority> getAuthorities() {

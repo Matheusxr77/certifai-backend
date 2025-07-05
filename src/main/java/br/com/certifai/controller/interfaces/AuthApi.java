@@ -4,6 +4,7 @@ import br.com.certifai.dto.LoginDTO;
 import br.com.certifai.model.Usuario;
 import br.com.certifai.response.AbstractResponse;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.springframework.http.ResponseEntity;
@@ -30,6 +31,19 @@ public interface AuthApi {
             @ApiResponse(responseCode = "500", description = "Erro interno")
     })
     ResponseEntity<AbstractResponse<Usuario>> registerUser(@RequestBody Usuario user);
+
+    @GetMapping("/verify")
+    @Operation(summary = "Verificar e-mail do usuário",
+            description = "Confirma o e-mail de um novo usuário através de um token de verificação.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "E-mail verificado com sucesso"),
+            @ApiResponse(responseCode = "400", description = "Token de verificação inválido ou expirado"),
+            @ApiResponse(responseCode = "500", description = "Erro interno no servidor")
+    })
+    ResponseEntity<String> verifyEmail(
+            @Parameter(description = "Token de verificação enviado para o e-mail do usuário", required = true)
+            @RequestParam String token
+    );
 
     @PostMapping("/login")
     @Operation(summary = "Login do usuário")

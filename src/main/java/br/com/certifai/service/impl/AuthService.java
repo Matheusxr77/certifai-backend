@@ -30,6 +30,7 @@ import java.time.ZoneOffset;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -38,6 +39,7 @@ public class AuthService implements IAuthService {
 
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
+    private final EmailService emailService;
 
     @Value("${jwt.secret}")
     private String secretKey;
@@ -80,6 +82,11 @@ public class AuthService implements IAuthService {
             throw new ConflitoException("Usuário já existe");
         }
         user.setPassword(passwordEncoder.encode(user.getPassword()));
+        user.setEmailVerified(false);
+        String verificationToken = UUID.randomUUID().toString();
+        user.setVerificationToken(verificationToken);
+        user.setTokenExpiresAt(LocalDateTime.now().plusHours(24));
+        emailService.sendVerificationEmail(user.getEmail(), user.getName(), verificationToken);
         return usuarioRepository.save(user);
     }
 
@@ -153,5 +160,29 @@ public class AuthService implements IAuthService {
             return Optional.empty();
         }
         return getUsuarioByEmail(auth.getName());
+    }
+
+    public boolean verifyEmail(String token) {
+        Optional<Usuario> userOptional = usuarioRepository.findByVerificationToken(token);
+
+        if (userOptional.isEmpty()) {
+            System.out.println("Token de verificação não encontrado: " + token);
+            return false;
+        }
+
+        Usuario user = userOptional.get();
+
+        if (user.getTokenExpiresAt() == null || user.getTokenExpiresAt().isBefore(LocalDateTime.now())) {
+            System.out.println("Token de verificação expirado para o usuário: " + user.getEmail());
+            return false;
+        }
+
+        user.setEmailVerified(true);
+        user.setVerificationToken(null);
+        user.setTokenExpiresAt(null);
+        usuarioRepository.save(user);
+
+        System.out.println("Email verificado com sucesso para: " + user.getEmail());
+        return true;
     }
 }

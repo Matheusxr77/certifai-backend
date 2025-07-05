@@ -33,21 +33,6 @@ public class UsuarioService implements IUsuarioService {
 
     @Override
     @Transactional
-    public Usuario criar(Usuario novoUsuario) {
-        if (usuarioRepository.existsByEmail(novoUsuario.getEmail())) {
-            throw new ConflitoException("Email já está em uso por outro usuário");
-        }
-
-        String senhaCodificada = passwordEncoder.encode(novoUsuario.getPassword());
-        novoUsuario.setPassword(senhaCodificada);
-
-        Usuario usuarioSalvo = usuarioRepository.save(novoUsuario);
-
-        return usuarioSalvo;
-    }
-
-    @Override
-    @Transactional
     public Usuario atualizar(Long id, Usuario usuarioAtualizado) {
         Usuario usuarioExistente = usuarioRepository.findById(id)
                 .orElseThrow(() -> new EntidadeNaoEncontradaException("Usuário não encontrado"));

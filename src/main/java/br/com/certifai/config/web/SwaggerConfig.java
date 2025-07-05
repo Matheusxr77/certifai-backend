@@ -54,7 +54,7 @@ public class SwaggerConfig {
         return GroupedOpenApi.builder()
                 .group("admin-access")
                 .pathsToMatch(getPathsFromEnum(
-                        Endpoints.ADMIN_REGISTER
+                        Endpoints.REGISTER
                 ))
                 .addOpenApiCustomizer(openApi -> openApi
                         .addSecurityItem(new SecurityRequirement()

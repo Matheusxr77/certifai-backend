@@ -13,9 +13,11 @@ public enum Endpoints {
             "/v3/api-docs/**"
     ),
 
-    ADMIN_REGISTER("/register"),
+    REGISTER("/register"),
     AUTH_LOGIN("/auth/login"),
     AUTH_LOGOUT("/auth/logout"),
+    USUARIO_CRIAR("/certifai/auth/register", "/auth/register"),
+    VERIFICAR_USUARIO("/auth/verify"),
 
     STATIC_RESOURCES("/assets/**", "/css/**", "/js/**");
 
@@ -35,15 +37,18 @@ public enum Endpoints {
                         SWAGGER_UI,
                         STATIC_RESOURCES,
                         AUTH_LOGIN,
-                        AUTH_LOGOUT
+                        AUTH_LOGOUT,
+                        REGISTER,
+                        USUARIO_CRIAR,
+                        VERIFICAR_USUARIO
                 ).flatMap(e -> Stream.of(e.getPatterns()))
                 .toArray(String[]::new);
     }
 
-    public static String[] getAdminEndpoints() {
-        return Stream.of(
-                        ADMIN_REGISTER
-                ).flatMap(e -> Stream.of(e.getPatterns()))
-                .toArray(String[]::new);
-    }
+//    public static String[] getAdminEndpoints() {
+//        return Stream.of(
+//                        REGISTER
+//                ).flatMap(e -> Stream.of(e.getPatterns()))
+//                .toArray(String[]::new);
+//    }
 }
