@@ -1,4 +1,4 @@
-package br.com.certifai.config.security;
+package br.com.certifai.config.validation;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableAsync;

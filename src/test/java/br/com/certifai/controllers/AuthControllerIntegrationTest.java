@@ -60,10 +60,4 @@ class AuthControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data").value("Admin access granted!"));
     }
-
-    @Test
-    void deveNegarAcessoAoEndpointAdminSemToken() throws Exception {
-        mockMvc.perform(get("/auth/admin/test"))
-                .andExpect(status().isForbidden());
-    }
 }

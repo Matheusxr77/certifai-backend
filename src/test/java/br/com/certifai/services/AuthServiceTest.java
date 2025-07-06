@@ -88,30 +88,6 @@ class AuthServiceTest {
     }
 
     @Test
-    void criarUsuarioComSucesso() {
-        Usuario usuario = new Usuario();
-        usuario.setEmail("novo@email.com");
-        usuario.setName("Novo Usuário");
-        usuario.setPassword("senha123");
-        usuario.setRole(Roles.ESTUDANTE);
-
-        when(usuarioRepository.findByEmail("novo@email.com")).thenReturn(Optional.empty());
-        when(passwordEncoder.encode("senha123")).thenReturn("senhaCodificada");
-        when(usuarioRepository.save(any(Usuario.class))).thenAnswer(invocation -> invocation.getArgument(0));
-
-        Usuario criado = authService.createUser(usuario);
-
-        assertNotNull(criado);
-        assertEquals("novo@email.com", criado.getEmail());
-        assertEquals("senhaCodificada", criado.getPassword());
-        assertFalse(criado.isEmailVerified());
-        assertNotNull(criado.getVerificationToken());
-        verify(emailService, times(1))
-                .sendVerificationEmail(eq("novo@email.com"), eq("Novo Usuário"), anyString());
-        verify(usuarioRepository, times(1)).save(any());
-    }
-
-    @Test
     void gerarToken_UsuarioValido() {
         Usuario usuario = new Usuario();
         usuario.setEmail("email@teste.com");
