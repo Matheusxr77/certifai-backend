@@ -15,4 +15,5 @@ public class UsuarioDTO {
     private Roles role;
     private boolean ativo;
     private LocalDateTime tokenExpiration;
+    private LocalDateTime resetTokenExpiration;
 }

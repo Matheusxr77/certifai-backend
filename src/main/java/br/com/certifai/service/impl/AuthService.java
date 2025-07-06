@@ -185,4 +185,22 @@ public class AuthService implements IAuthService {
         System.out.println("Email verificado com sucesso para: " + user.getEmail());
         return true;
     }
+
+    @Override
+    public void iniciarRecuperacaoSenha(String email) {
+        Usuario usuario = usuarioRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado"));
+
+        String resetToken = UUID.randomUUID().toString();
+        usuario.setResetToken(resetToken);
+        usuario.setResetTokenExpiresAt(LocalDateTime.now().plusHours(1));
+
+        usuarioRepository.save(usuario);
+        emailService.sendPasswordResetEmail(usuario.getEmail(), usuario.getName(), resetToken);
+    }
+
+    @Override
+    public Usuario salvarUsuario(Usuario usuario) {
+        return usuarioRepository.save(usuario);
+    }
 }

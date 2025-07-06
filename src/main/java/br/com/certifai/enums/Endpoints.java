@@ -19,6 +19,7 @@ public enum Endpoints {
     USUARIO_CRIAR("/auth/register"),
     VERIFICAR_USUARIO("/auth/verify"),
     OAUTH2("/login/oauth2/**", "/oauth2/**"),
+    ESQUECI_SENHA("/auth/esqueci-senha"),
 
     STATIC_RESOURCES("/assets/**", "/css/**", "/js/**");
 
@@ -42,7 +43,8 @@ public enum Endpoints {
                         REGISTER,
                         USUARIO_CRIAR,
                         VERIFICAR_USUARIO,
-                        OAUTH2
+                        OAUTH2,
+                        ESQUECI_SENHA
                 ).flatMap(e -> Stream.of(e.getPatterns()))
                 .toArray(String[]::new);
     }
