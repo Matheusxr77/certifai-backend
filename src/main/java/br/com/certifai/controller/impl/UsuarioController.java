@@ -44,7 +44,7 @@ public class UsuarioController implements UsuarioApi {
 
     @Override
     public ResponseEntity<AbstractResponse<Void>> alterarSenha(Long id, NovaSenhaRequest novaSenha) {
-        usuarioService.alterarSenha(id, novaSenha.senha());
+        usuarioService.alterarSenha(id, novaSenha);
         return ResponseEntity.ok(AbstractResponse.success(null, "Senha alterada com sucesso"));
     }
 
@@ -52,5 +52,11 @@ public class UsuarioController implements UsuarioApi {
     public ResponseEntity<AbstractResponse<Void>> remover(Long id) {
         usuarioService.remover(id);
         return ResponseEntity.ok(AbstractResponse.success(null, "Usuário removido com sucesso"));
+    }
+
+    @Override
+    public ResponseEntity<AbstractResponse<Void>> desativarUsuario(Long id) {
+        usuarioService.desativarUsuario(id);
+        return ResponseEntity.ok(AbstractResponse.success(null, "Usuário desativado com sucesso"));
     }
 }

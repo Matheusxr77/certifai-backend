@@ -64,4 +64,13 @@ public interface UsuarioApi {
             @ApiResponse(responseCode = "403", description = "Acesso negado")
     })
     ResponseEntity<AbstractResponse<Void>> remover(@PathVariable("id") Long id);
+
+    @PatchMapping("/{id}/desativar")
+    @Operation(summary = "Desativar usuário (suspender conta)")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Usuário desativado com sucesso"),
+            @ApiResponse(responseCode = "404", description = "Usuário não encontrado"),
+            @ApiResponse(responseCode = "403", description = "Acesso negado")
+    })
+    ResponseEntity<AbstractResponse<Void>> desativarUsuario(@PathVariable("id") Long id);
 }

@@ -3,6 +3,7 @@ package br.com.certifai.service.impl;
 import br.com.certifai.exception.*;
 import br.com.certifai.model.*;
 import br.com.certifai.repository.*;
+import br.com.certifai.requests.NovaSenhaRequest;
 import br.com.certifai.service.interfaces.IUsuarioService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -58,9 +59,15 @@ public class UsuarioService implements IUsuarioService {
 
     @Override
     @Transactional
-    public void alterarSenha(Long id, String novaSenha) {
+    public void alterarSenha(Long id, NovaSenhaRequest novaSenha) {
         Usuario usuario = buscarPorId(id);
-        usuario.setPassword(passwordEncoder.encode(novaSenha));
+        if (!passwordEncoder.matches(novaSenha.senhaAntiga(), usuario.getPassword())) {
+            throw new RuntimeException("Senha antiga incorreta.");
+        }
+        if (!novaSenha.novaSenha().equals(novaSenha.confirmarNovaSenha())) {
+            throw new RuntimeException("Nova senha e confirmação não coincidem.");
+        }
+        usuario.setPassword(passwordEncoder.encode(novaSenha.confirmarNovaSenha()));
         usuarioRepository.save(usuario);
     }
 

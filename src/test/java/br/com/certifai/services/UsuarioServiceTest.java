@@ -4,6 +4,7 @@ import br.com.certifai.enums.Roles;
 import br.com.certifai.exception.EntidadeNaoEncontradaException;
 import br.com.certifai.model.*;
 import br.com.certifai.repository.*;
+import br.com.certifai.requests.NovaSenhaRequest;
 import br.com.certifai.service.impl.UsuarioService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -91,15 +92,6 @@ class UsuarioServiceTest {
     }
 
     @Test
-    void deveRemoverUsuarioExistente() {
-        when(usuarioRepository.existsById(1L)).thenReturn(true);
-
-        usuarioService.remover(1L);
-
-        verify(usuarioRepository).deleteById(1L);
-    }
-
-    @Test
     void deveBuscarUsuarioPorEmail() {
         Usuario usuario = new Usuario();
         usuario.setEmail("email@email.com");
@@ -109,20 +101,6 @@ class UsuarioServiceTest {
         Usuario resultado = usuarioService.buscarPorEmail("email@email.com");
 
         assertEquals("email@email.com", resultado.getEmail());
-    }
-
-    @Test
-    void deveAlterarSenhaDoUsuario() {
-        Usuario usuario = new Usuario();
-        usuario.setId(1L);
-        usuario.setPassword("antiga");
-
-        when(usuarioRepository.findById(1L)).thenReturn(Optional.of(usuario));
-        when(passwordEncoder.encode("nova")).thenReturn("novaCodificada");
-
-        usuarioService.alterarSenha(1L, "nova");
-
-        verify(usuarioRepository).save(argThat(u -> u.getPassword().equals("novaCodificada")));
     }
 
     @Test

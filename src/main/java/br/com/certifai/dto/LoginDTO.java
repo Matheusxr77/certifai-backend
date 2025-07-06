@@ -1,6 +1,8 @@
 package br.com.certifai.dto;
 
 import br.com.certifai.model.Usuario;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
