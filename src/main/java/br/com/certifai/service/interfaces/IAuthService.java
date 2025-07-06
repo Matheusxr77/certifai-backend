@@ -16,4 +16,6 @@ public interface IAuthService extends UserDetailsService {
     List<GrantedAuthority> getAuthoritiesFromToken(String token);
     Optional<Usuario> getPrincipal();
     boolean verifyEmail(String email);
+    void iniciarRecuperacaoSenha(String email);
+    Usuario salvarUsuario(Usuario usuario);
 }

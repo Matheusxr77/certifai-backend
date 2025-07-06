@@ -1,15 +1,16 @@
 package br.com.certifai.controller.impl;
 
 import br.com.certifai.controller.interfaces.DashboardApi;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.core.user.OAuth2User;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 
-@Component
+@Controller
 public class DashboardController implements DashboardApi {
 
     @Override
-    public String dashboard(OAuth2User principal, Model model) {
+    public String dashboard(@AuthenticationPrincipal OAuth2User principal, Model model) {
         if (principal != null) {
             model.addAttribute("name", principal.getAttribute("name"));
             model.addAttribute("email", principal.getAttribute("email"));

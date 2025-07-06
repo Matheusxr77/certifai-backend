@@ -52,4 +52,17 @@ public interface AuthApi {
             @ApiResponse(responseCode = "401", description = "Credenciais inválidas")
     })
     ResponseEntity<AbstractResponse<LoginDTO>> loginUser(@RequestBody Usuario usuario);
+
+    @Operation(summary = "Solicitar redefinição de senha",
+            description = "Envia um e-mail com o link para redefinir a senha.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "E-mail de redefinição enviado com sucesso"),
+            @ApiResponse(responseCode = "404", description = "Usuário com o e-mail informado não encontrado"),
+            @ApiResponse(responseCode = "500", description = "Erro interno ao enviar e-mail")
+    })
+    @PostMapping("/esqueci-senha")
+    ResponseEntity<AbstractResponse<String>> esqueceuSenha(
+            @Parameter(description = "E-mail do usuário que esqueceu a senha", required = true)
+            @RequestParam String email
+    );
 }

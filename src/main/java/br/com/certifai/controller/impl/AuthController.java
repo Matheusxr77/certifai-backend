@@ -2,8 +2,10 @@ package br.com.certifai.controller.impl;
 
 import br.com.certifai.controller.interfaces.AuthApi;
 import br.com.certifai.dto.LoginDTO;
+import br.com.certifai.exception.EntidadeNaoEncontradaException;
 import br.com.certifai.model.Usuario;
 import br.com.certifai.response.AbstractResponse;
+import br.com.certifai.service.impl.EmailService;
 import br.com.certifai.service.interfaces.IAuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -59,5 +61,16 @@ public class AuthController implements AuthApi {
                 ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                         .body(AbstractResponse.error("Usuário não encontrado após autenticação", "USER_NOT_FOUND"))
         );
+    }
+
+    @Override
+    public ResponseEntity<AbstractResponse<String>> esqueceuSenha(@RequestParam String email) {
+        try {
+            authService.iniciarRecuperacaoSenha(email);
+            return ResponseEntity.ok(AbstractResponse.success("E-mail de redefinição de senha enviado com sucesso."));
+        } catch (EntidadeNaoEncontradaException ex) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(AbstractResponse.error("Usuário com este e-mail não foi encontrado.", "NOT_FOUND"));
+        }
     }
 }

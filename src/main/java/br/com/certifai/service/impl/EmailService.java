@@ -36,13 +36,30 @@ public class EmailService {
         String verificationLink = baseUrl + "/auth/verify?token=" + token;
 
         String htmlContent = String.format("""
-            <p>Olá %s,</p>
-            <p>Obrigado por se cadastrar em nossa aplicação! Por favor, clique no link abaixo para verificar seu endereço de e-mail e ativar sua conta:</p>
-            <p><a href="%s">Verificar E-mail Agora</a></p>
-            <p>Este link é válido por 24 horas.</p>
-            <p>Se você não solicitou este e-mail, pode ignorá-lo com segurança.</p>
-            <p>Atenciosamente,<br>Sua Equipe</p>
-            """, username, verificationLink);
+        <html>
+        <body style="font-family: Arial, sans-serif; color: #333;">
+            <h2>Olá %s,</h2>
+            <p>Obrigado por se cadastrar em nossa aplicação!</p>
+            <p>Por favor, clique no botão abaixo para verificar seu endereço de e-mail e ativar sua conta:</p>
+            <p style="margin: 20px 0;">
+                <a href="%s" style="
+                    padding: 12px 24px;
+                    background-color: #003366;
+                    color: white;
+                    text-decoration: none;
+                    border-radius: 6px;
+                    display: inline-block;
+                ">Verificar E-mail Agora</a>
+            </p>
+            <p><small>Este link é válido por 24 horas.</small></p>
+            <hr/>
+            <p style="font-size: 12px; color: #888;">
+                Se você não solicitou este e-mail, pode ignorá-lo com segurança.<br/>
+                Atenciosamente,<br/>Equipe CertifAI
+            </p>
+        </body>
+        </html>
+        """, username, verificationLink);
 
         Content content = new Content("text/html", htmlContent);
         Mail mail = new Mail(from, subject, to, content);
@@ -55,9 +72,56 @@ public class EmailService {
             Response response = sendGrid.api(request);
 
             System.out.println("E-mail de verificação enviado para " + toEmail + ". Status Code: " + response.getStatusCode());
-            System.out.println("Corpo da Resposta: " + response.getBody());
+            if (response.getStatusCode() >= 400) {
+                System.err.println("Erro SendGrid: " + response.getBody());
+            }
         } catch (IOException ex) {
             System.err.println("Erro ao enviar e-mail de verificação via SendGrid para " + toEmail + ": " + ex.getMessage());
+        }
+    }
+
+    @Async
+    public void sendPasswordResetEmail(String toEmail, String username, String token) {
+        Email from = new Email(fromEmail);
+        Email to = new Email(toEmail);
+        String subject = "Recuperação de Senha - CertifAI";
+        String resetLink = baseUrl + "/auth/reset-password?token=" + token;
+
+        String htmlContent = String.format("""
+        <html>
+        <body style="font-family: Arial, sans-serif; color: #333;">
+            <h2>Olá %s,</h2>
+            <p>Recebemos uma solicitação para redefinir a senha da sua conta na <strong>CertifAI</strong>.</p>
+            <p>Para criar uma nova senha, clique no botão abaixo:</p>
+            <p style="margin: 20px 0;">
+                <a href="%s" style="padding: 12px 24px; background-color: #f44336; color: white; text-decoration: none; border-radius: 6px;">Redefinir Senha</a>
+            </p>
+            <p><small>Este link é válido por 1 hora.</small></p>
+            <hr/>
+            <p style="font-size: 12px; color: #888;">
+                Se você não solicitou este e-mail, pode ignorá-lo com segurança.<br/>
+                Atenciosamente,<br/>Equipe CertifAI
+            </p>
+        </body>
+        </html>
+    """, username, resetLink);
+
+        Content content = new Content("text/html", htmlContent);
+        Mail mail = new Mail(from, subject, to, content);
+
+        Request request = new Request();
+        try {
+            request.setMethod(Method.POST);
+            request.setEndpoint("mail/send");
+            request.setBody(mail.build());
+            Response response = sendGrid.api(request);
+
+            System.out.println("E-mail de recuperação de senha enviado para " + toEmail + ". Status Code: " + response.getStatusCode());
+            if (response.getStatusCode() >= 400) {
+                System.err.println("Erro SendGrid: " + response.getBody());
+            }
+        } catch (IOException ex) {
+            System.err.println("Erro ao enviar e-mail de recuperação de senha via SendGrid para " + toEmail + ": " + ex.getMessage());
         }
     }
 }
