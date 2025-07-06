@@ -1,10 +1,10 @@
 package br.com.certifai.config.security;
 
 import br.com.certifai.enums.Endpoints;
+import br.com.certifai.service.impl.CustomOAuth2UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -22,6 +22,7 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthFilter;
     private final AuthenticationProvider authenticationProvider;
+    private final CustomOAuth2UserService customOAuth2UserService;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -35,6 +36,9 @@ public class SecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
                 )
                 .oauth2Login(oauth -> oauth
+                        .userInfoEndpoint(userInfo -> {
+                            userInfo.oidcUserService(customOAuth2UserService);
+                        })
                         .defaultSuccessUrl("/dashboard", true)
                 )
                 .authenticationProvider(authenticationProvider)

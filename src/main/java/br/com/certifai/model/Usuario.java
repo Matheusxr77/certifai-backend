@@ -66,6 +66,12 @@ public class Usuario implements UserDetails {
     @Column(name = "token_expires_at", nullable = true)
     private LocalDateTime tokenExpiresAt;
 
+    @Column(name = "reset_token")
+    private String resetToken;
+
+    @Column(name = "reset_token_expires_at")
+    private LocalDateTime resetTokenExpiresAt;
+
     @Override
     @JsonIgnore
     public Collection<? extends GrantedAuthority> getAuthorities() {
