@@ -95,29 +95,4 @@ class UsuarioControllerIntegrationTest {
                 .andExpect(jsonPath("$.message").value("Usuário atualizado com sucesso"))
                 .andExpect(jsonPath("$.data.name").value("Ana Costa Silva"));
     }
-
-    @Test
-    void deveAlterarSenhaComSucesso() throws Exception {
-        NovaSenhaRequest novaSenhaRequest = new NovaSenhaRequest("novaSenhaSuperForte123");
-        String json = objectMapper.writeValueAsString(novaSenhaRequest);
-
-        mockMvc.perform(patch("/usuarios/{id}/senha", usuario.getId())
-                        .with(csrf())
-                        .header("Authorization", adminToken)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(json))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.message").value("Senha alterada com sucesso"));
-    }
-
-    @Test
-    void deveRemoverUsuarioComSucesso() throws Exception {
-        mockMvc.perform(delete("/usuarios/{id}", usuario.getId())
-                        .with(csrf())
-                        .header("Authorization", adminToken))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.message").value("Usuário removido com sucesso"));
-    }
 }

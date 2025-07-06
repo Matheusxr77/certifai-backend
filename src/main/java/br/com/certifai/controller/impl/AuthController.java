@@ -4,8 +4,8 @@ import br.com.certifai.controller.interfaces.AuthApi;
 import br.com.certifai.dto.LoginDTO;
 import br.com.certifai.exception.EntidadeNaoEncontradaException;
 import br.com.certifai.model.Usuario;
+import br.com.certifai.repository.UsuarioRepository;
 import br.com.certifai.response.AbstractResponse;
-import br.com.certifai.service.impl.EmailService;
 import br.com.certifai.service.interfaces.IAuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -23,6 +23,7 @@ public class AuthController implements AuthApi {
 
     private final IAuthService authService;
     private final AuthenticationManager authenticationManager;
+    private final UsuarioRepository usuarioRepository;
 
     @Override
     public ResponseEntity<AbstractResponse<String>> testAdminAccess() {
@@ -54,9 +55,20 @@ public class AuthController implements AuthApi {
         Optional<Usuario> usuarioOpt = authService.getUsuarioByEmail(usuario.getEmail());
 
         return usuarioOpt.map(usuarioAutenticado -> {
+            Usuario userRetorno = new Usuario();
+            userRetorno.setEmail(usuarioAutenticado.getEmail());
+            userRetorno.setName(usuarioAutenticado.getName());
+            if (!usuarioAutenticado.isEmailVerified()) {
+                LoginDTO loginDTO = new LoginDTO(userRetorno, null);
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new AbstractResponse<LoginDTO>(false, "E-mail não verificado, por favor, consulte sua caixa de entrada ou spam.", "401", loginDTO));
+            }
+            if (!usuarioAutenticado.getAtivo()) {
+                usuarioAutenticado.setAtivo(true);
+                usuarioRepository.save(usuarioAutenticado);
+            }
             String token = authService.gerarToken(usuarioAutenticado);
-            LoginDTO loginDTO = new LoginDTO(usuarioAutenticado, token);
-            return ResponseEntity.ok(AbstractResponse.success(loginDTO, "Login realizado com sucesso"));
+            LoginDTO login = new LoginDTO(userRetorno, token);
+            return ResponseEntity.ok(AbstractResponse.success(login, "Login realizado com sucesso"));
         }).orElseGet(() ->
                 ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                         .body(AbstractResponse.error("Usuário não encontrado após autenticação", "USER_NOT_FOUND"))
