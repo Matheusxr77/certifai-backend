@@ -33,7 +33,7 @@ public class EmailService {
         Email from = new Email(fromEmail);
         Email to = new Email(toEmail);
         String subject = "Verifique seu E-mail para Ativar sua Conta";
-        String verificationLink = baseUrl + "/auth/verify?token=" + token;
+        String verificationLink = "http://localhost:5173/auth/verify?token=" + token;
 
         String htmlContent = String.format("""
         <html>

@@ -13,9 +13,9 @@ import java.util.Optional;
 @NoArgsConstructor
 @AllArgsConstructor
 public class LoginDTO {
-    private Usuario usuario;
+    private UsuarioDTO usuario;
     private String token;
 
-    public LoginDTO(Optional<Usuario> user, String token) {
+    public LoginDTO(Optional<UsuarioDTO> user, String token) {
     }
 }
