@@ -1,6 +1,7 @@
 package br.com.certifai.controller.interfaces;
 
 import br.com.certifai.dto.LoginDTO;
+import br.com.certifai.dto.UsuarioDTO;
 import br.com.certifai.model.Usuario;
 import br.com.certifai.response.AbstractResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -30,7 +31,7 @@ public interface AuthApi {
             @ApiResponse(responseCode = "201", description = "Usuário criado"),
             @ApiResponse(responseCode = "500", description = "Erro interno")
     })
-    ResponseEntity<AbstractResponse<Usuario>> registerUser(@RequestBody Usuario user);
+    ResponseEntity<AbstractResponse<UsuarioDTO>> registerUser(@RequestBody Usuario user);
 
     @GetMapping("/verify")
     @Operation(summary = "Verificar e-mail do usuário",

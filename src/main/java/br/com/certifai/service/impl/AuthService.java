@@ -166,18 +166,27 @@ public class AuthService implements IAuthService {
         Optional<Usuario> userOptional = usuarioRepository.findByVerificationToken(token);
 
         if (userOptional.isEmpty()) {
-            System.out.println("Token de verificação não encontrado: " + token);
-            return false;
+            Optional<Usuario> userByEmailVerified = usuarioRepository.findAll().stream()
+                    .filter(Usuario::isEmailVerified)
+                    .findAny();
+
+            return userByEmailVerified.isPresent();
         }
 
         Usuario user = userOptional.get();
 
-        if (user.getTokenExpiresAt() == null || user.getTokenExpiresAt().isBefore(LocalDateTime.now())) {
-            System.out.println("Token de verificação expirado para o usuário: " + user.getEmail());
-            return false;
+        if (user.isEmailVerified()) {
+            return true;
         }
 
-        user.setEmailVerified(true);
+        if (user.getTokenExpiresAt() != null && user.getTokenExpiresAt().isBefore(LocalDateTime.now())) {
+            System.out.println("Token de verificação expirado para o usuário: " + user.getEmail());
+            user.setEmailVerified(false);
+            return true;
+        } else {
+            user.setEmailVerified(true);
+        }
+
         user.setVerificationToken(null);
         user.setTokenExpiresAt(null);
         usuarioRepository.save(user);

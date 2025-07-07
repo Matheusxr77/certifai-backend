@@ -2,7 +2,9 @@ package br.com.certifai.controller.impl;
 
 import br.com.certifai.controller.interfaces.AuthApi;
 import br.com.certifai.dto.LoginDTO;
+import br.com.certifai.dto.UsuarioDTO;
 import br.com.certifai.exception.EntidadeNaoEncontradaException;
+import br.com.certifai.mappers.IUsuarioMapper;
 import br.com.certifai.model.Usuario;
 import br.com.certifai.repository.UsuarioRepository;
 import br.com.certifai.response.AbstractResponse;
@@ -24,6 +26,7 @@ public class AuthController implements AuthApi {
     private final IAuthService authService;
     private final AuthenticationManager authenticationManager;
     private final UsuarioRepository usuarioRepository;
+    private final IUsuarioMapper usuarioMapper;
 
     @Override
     public ResponseEntity<AbstractResponse<String>> testAdminAccess() {
@@ -31,10 +34,11 @@ public class AuthController implements AuthApi {
     }
 
     @Override
-    public ResponseEntity<AbstractResponse<Usuario>> registerUser(Usuario user) {
+    public ResponseEntity<AbstractResponse<UsuarioDTO>> registerUser(Usuario user) {
         Usuario usuarioCriado = authService.createUser(user);
+        UsuarioDTO usuarioDTO = usuarioMapper.toDTO(usuarioCriado);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(AbstractResponse.success(usuarioCriado, "Usuário criado com sucesso"));
+                .body(AbstractResponse.success(usuarioDTO, "Usuário criado com sucesso"));
     }
 
     @Override
@@ -55,11 +59,9 @@ public class AuthController implements AuthApi {
         Optional<Usuario> usuarioOpt = authService.getUsuarioByEmail(usuario.getEmail());
 
         return usuarioOpt.map(usuarioAutenticado -> {
-            Usuario userRetorno = new Usuario();
-            userRetorno.setEmail(usuarioAutenticado.getEmail());
-            userRetorno.setName(usuarioAutenticado.getName());
+            UsuarioDTO usuarioDTO = usuarioMapper.toDTO(usuarioAutenticado);
             if (!usuarioAutenticado.isEmailVerified()) {
-                LoginDTO loginDTO = new LoginDTO(userRetorno, null);
+                LoginDTO loginDTO = new LoginDTO(usuarioDTO, null);
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new AbstractResponse<LoginDTO>(false, "E-mail não verificado, por favor, consulte sua caixa de entrada ou spam.", "401", loginDTO));
             }
             if (!usuarioAutenticado.getAtivo()) {
@@ -67,7 +69,7 @@ public class AuthController implements AuthApi {
                 usuarioRepository.save(usuarioAutenticado);
             }
             String token = authService.gerarToken(usuarioAutenticado);
-            LoginDTO login = new LoginDTO(userRetorno, token);
+            LoginDTO login = new LoginDTO(usuarioDTO, token);
             return ResponseEntity.ok(AbstractResponse.success(login, "Login realizado com sucesso"));
         }).orElseGet(() ->
                 ResponseEntity.status(HttpStatus.UNAUTHORIZED)
