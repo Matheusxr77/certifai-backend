@@ -22,6 +22,7 @@ public enum Endpoints {
     ESQUECI_SENHA("/auth/esqueci-senha"),
     DASHBOARD("/dashboard"),
     LOGIN("/login"),
+    USUARIO_DESATIVAR("/auth/usuarios/desativar"),
 
     STATIC_RESOURCES("/assets/**", "/css/**", "/js/**");
 
@@ -37,7 +38,6 @@ public enum Endpoints {
 
     public static String[] getPublicEndpoints() {
         return Stream.of(
-                        HOME,
                         SWAGGER_UI,
                         STATIC_RESOURCES,
                         AUTH_LOGIN,
