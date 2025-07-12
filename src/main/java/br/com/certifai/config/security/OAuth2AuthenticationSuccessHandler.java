@@ -7,6 +7,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
@@ -18,6 +19,8 @@ import java.util.Map;
 
 @Component
 public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccessHandler {
+    @Value("${app.base-url}")
+    private String baseUrl;
 
     private final UsuarioRepository usuarioRepository;
     private final JwtUtil jwtUtil;
@@ -53,6 +56,6 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
 
         response.addCookie(authCookie);
 
-        response.sendRedirect("http://localhost:5173/dashboard");
+        response.sendRedirect(baseUrl + "/dashboard");
     }
 }

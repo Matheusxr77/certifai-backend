@@ -85,7 +85,7 @@ public class EmailService {
         Email from = new Email(fromEmail);
         Email to = new Email(toEmail);
         String subject = "Recuperação de Senha - CertifAI";
-        String resetLink = "http://localhost:5173/" + "reset-password?token=" + token;
+        String resetLink = baseUrl + "/reset-password?token=" + token;
 
         String htmlContent = String.format("""
         <html>
