@@ -2,8 +2,11 @@ package br.com.certifai.service.impl;
 
 import br.com.certifai.enums.Roles;
 import br.com.certifai.exception.ConflitoException;
+import br.com.certifai.exception.EntidadeNaoEncontradaException;
 import br.com.certifai.model.Usuario;
 import br.com.certifai.repository.UsuarioRepository;
+import br.com.certifai.requests.NovaSenhaRequest;
+import br.com.certifai.requests.RecuperarSenhaRequest;
 import br.com.certifai.service.interfaces.IAuthService;
 
 import com.auth0.jwt.JWT;
@@ -12,9 +15,12 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 
-import lombok.RequiredArgsConstructor;
-
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -23,26 +29,43 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.stereotype.Service;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import org.springframework.transaction.annotation.Transactional;
 
+import javax.crypto.SecretKey;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
 public class AuthService implements IAuthService {
 
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
+    private final Cache<String, Boolean> tokenDenylist;
 
     @Value("${jwt.secret}")
     private String secretKey;
+
+    public AuthService(UsuarioRepository usuarioRepository,
+                       PasswordEncoder passwordEncoder,
+                       EmailService emailService) {
+        this.usuarioRepository = usuarioRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.emailService = emailService;
+
+        this.tokenDenylist = Caffeine.newBuilder()
+                .maximumSize(10_000)
+                .expireAfterWrite(30, TimeUnit.MINUTES)
+                .build();
+    }
 
     private Algorithm getAlgorithm() {
         return Algorithm.HMAC256(secretKey);
@@ -96,16 +119,20 @@ public class AuthService implements IAuthService {
     }
 
     @Override
-    public String gerarToken(Usuario usuario){
+    public String gerarToken(Usuario usuario) {
         if (usuario == null) {
             throw new IllegalArgumentException("Usuário inválido para gerar token");
         }
-        return JWT.create()
+
+        String token = JWT.create()
                 .withSubject(usuario.getEmail())
                 .withClaim("roles", List.of(getRoles(usuario)))
                 .withExpiresAt(LocalDateTime.now().plusMinutes(30).toInstant(ZoneOffset.of("-03:00")))
                 .sign(getAlgorithm());
+
+        return token;
     }
+
 
     @Override
     public boolean validateToken(String token) {
@@ -117,6 +144,7 @@ public class AuthService implements IAuthService {
             return false;
         }
     }
+
 
     private DecodedJWT decodeToken(String token) {
         try {
@@ -132,8 +160,9 @@ public class AuthService implements IAuthService {
         if (validateToken(token)) {
             DecodedJWT decodedJWT = decodeToken(token);
             return decodedJWT != null ? decodedJWT.getSubject() : null;
+        } else {
+            return null;
         }
-        return null;
     }
 
     @Override
@@ -155,43 +184,45 @@ public class AuthService implements IAuthService {
 
     @Override
     public Optional<Usuario> getPrincipal() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null || auth.getName() == null) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated()) {
             return Optional.empty();
         }
-        return getUsuarioByEmail(auth.getName());
+
+        if (authentication.getPrincipal() instanceof Usuario usuario) {
+            return Optional.of(usuario);
+        }
+
+        if (authentication instanceof OAuth2AuthenticationToken oauth) {
+            String email = oauth.getPrincipal().getAttribute("email");
+            return getUsuarioByEmail(email);
+        }
+
+        return Optional.empty();
     }
 
     public boolean verifyEmail(String token) {
         Optional<Usuario> userOptional = usuarioRepository.findByVerificationToken(token);
-
         if (userOptional.isEmpty()) {
-            Optional<Usuario> userByEmailVerified = usuarioRepository.findAll().stream()
-                    .filter(Usuario::isEmailVerified)
-                    .findAny();
-
-            return userByEmailVerified.isPresent();
+            return false;
         }
 
         Usuario user = userOptional.get();
+
+        if (user.getTokenExpiresAt() != null && user.getTokenExpiresAt().isBefore(LocalDateTime.now())) {
+            return false;
+        }
 
         if (user.isEmailVerified()) {
             return true;
         }
 
-        if (user.getTokenExpiresAt() != null && user.getTokenExpiresAt().isBefore(LocalDateTime.now())) {
-            System.out.println("Token de verificação expirado para o usuário: " + user.getEmail());
-            user.setEmailVerified(false);
-            return true;
-        } else {
-            user.setEmailVerified(true);
-        }
-
+        user.setEmailVerified(true);
         user.setVerificationToken(null);
         user.setTokenExpiresAt(null);
         usuarioRepository.save(user);
 
-        System.out.println("Email verificado com sucesso para: " + user.getEmail());
         return true;
     }
 
@@ -200,7 +231,14 @@ public class AuthService implements IAuthService {
         Usuario usuario = usuarioRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado"));
 
-        String resetToken = UUID.randomUUID().toString();
+        String resetToken = Jwts.builder()
+                .setSubject(usuario.getEmail())
+                .setIssuedAt(new Date())
+                .setExpiration(Date.from(LocalDateTime.now()
+                        .plusHours(1)
+                        .toInstant(ZoneOffset.of("-03:00"))))
+                .signWith(Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8)))
+                .compact();
         usuario.setResetToken(resetToken);
         usuario.setResetTokenExpiresAt(LocalDateTime.now().plusHours(1));
 
@@ -209,7 +247,64 @@ public class AuthService implements IAuthService {
     }
 
     @Override
-    public Usuario salvarUsuario(Usuario usuario) {
-        return usuarioRepository.save(usuario);
+    public void invalidateToken(String token) {
+        tokenDenylist.put(token, true);
+    }
+
+    @Override
+    public boolean isTokenInvalid(String token) {
+        return tokenDenylist.getIfPresent(token) != null;
+    }
+
+    @Override
+    @Transactional
+    public void resetarSenha(RecuperarSenhaRequest novaSenhaRequest) {
+        String token = novaSenhaRequest.token();
+        SecretKey key = Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
+
+        if (novaSenhaRequest.novaSenha() == null || novaSenhaRequest.confirmarNovaSenha() == null ||
+                !novaSenhaRequest.novaSenha().equals(novaSenhaRequest.confirmarNovaSenha())) {
+            throw new IllegalArgumentException("Senhas inválidas.");
+        }
+
+        String email;
+        try {
+            Claims claims = Jwts.parserBuilder()
+                    .setSigningKey(key)
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+
+            email = claims.getSubject();
+
+            if (email == null || email.isEmpty()) {
+                throw new IllegalArgumentException("Token inválido: email não encontrado.");
+            }
+
+        } catch (JwtException | IllegalArgumentException e) {
+            throw new IllegalArgumentException("Token inválido ou expirado.");
+        }
+
+        Usuario usuario = usuarioRepository.findByEmail(email)
+                .orElseThrow(() -> new EntidadeNaoEncontradaException("Usuário não encontrado para o token informado."));
+
+        usuario.setPassword(passwordEncoder.encode(novaSenhaRequest.novaSenha()));
+        usuarioRepository.save(usuario);
+        invalidateToken(token);
+    }
+
+    @Override
+    public boolean isResetTokenValid(String token) {
+        try {
+            Claims claims = Jwts.parserBuilder()
+                    .setSigningKey(secretKey.getBytes(StandardCharsets.UTF_8))
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+
+            return claims.getExpiration().after(new Date());
+        } catch (JwtException | IllegalArgumentException e) {
+            return false;
+        }
     }
 }

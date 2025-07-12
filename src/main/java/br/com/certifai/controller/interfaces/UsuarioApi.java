@@ -40,9 +40,7 @@ public interface UsuarioApi {
             @ApiResponse(responseCode = "409", description = "Conflito - email já em uso"),
             @ApiResponse(responseCode = "403", description = "Acesso negado")
     })
-    ResponseEntity<AbstractResponse<UsuarioDTO>> atualizar(
-            @PathVariable("id") Long id,
-            @RequestBody UsuarioDTO usuarioDTO);
+    ResponseEntity<AbstractResponse<UsuarioDTO>> atualizar(@PathVariable("id") Long id, @RequestBody UsuarioDTO usuarioDTO);
 
     @PatchMapping("/{id}/senha")
     @Operation(summary = "Alterar senha")
