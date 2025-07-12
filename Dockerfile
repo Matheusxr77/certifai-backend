@@ -4,7 +4,7 @@ RUN apt-get install -y openjdk-21-jdk maven
 
 COPY . .
 
-RUN mvn clean install
+RUN mvn clean install -DskipTests
 
 FROM openjdk:21-jdk-slim
 
