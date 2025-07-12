@@ -1,6 +1,7 @@
 package br.com.certifai.service.interfaces;
 
 import br.com.certifai.model.Usuario;
+import br.com.certifai.requests.RecuperarSenhaRequest;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetailsService;
 
@@ -17,5 +18,8 @@ public interface IAuthService extends UserDetailsService {
     Optional<Usuario> getPrincipal();
     boolean verifyEmail(String email);
     void iniciarRecuperacaoSenha(String email);
-    Usuario salvarUsuario(Usuario usuario);
+    void invalidateToken(String token);
+    boolean isTokenInvalid(String token);
+    void resetarSenha(RecuperarSenhaRequest novaSenhaRequest);
+    boolean isResetTokenValid(String token);
 }

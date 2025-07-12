@@ -7,13 +7,16 @@ import br.com.certifai.exception.EntidadeNaoEncontradaException;
 import br.com.certifai.mappers.IUsuarioMapper;
 import br.com.certifai.model.Usuario;
 import br.com.certifai.repository.UsuarioRepository;
+import br.com.certifai.requests.RecuperarSenhaRequest;
 import br.com.certifai.response.AbstractResponse;
 import br.com.certifai.service.interfaces.IAuthService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -27,6 +30,7 @@ public class AuthController implements AuthApi {
     private final AuthenticationManager authenticationManager;
     private final UsuarioRepository usuarioRepository;
     private final IUsuarioMapper usuarioMapper;
+    private final HttpServletRequest request;
 
     @Override
     public ResponseEntity<AbstractResponse<String>> testAdminAccess() {
@@ -85,6 +89,48 @@ public class AuthController implements AuthApi {
         } catch (EntidadeNaoEncontradaException ex) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(AbstractResponse.error("Usuário com este e-mail não foi encontrado.", "NOT_FOUND"));
+        }
+    }
+
+    @Override
+    public ResponseEntity<AbstractResponse<UsuarioDTO>> getUsuarioLogado() {
+        return authService.getPrincipal()
+                .map(usuario -> {
+                    UsuarioDTO usuarioDTO = usuarioMapper.toDTO(usuario);
+                    return ResponseEntity.ok(AbstractResponse.success(usuarioDTO));
+                })
+                .orElse(ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(AbstractResponse.error("Usuário não autenticado ou token inválido", "UNAUTHORIZED")));
+    }
+
+    @Override
+    public ResponseEntity<AbstractResponse<String>> resetarSenha(@RequestBody RecuperarSenhaRequest novaSenhaRequest) {
+        try {
+            authService.resetarSenha(novaSenhaRequest);
+            return ResponseEntity.ok(AbstractResponse.success("Senha redefinida com sucesso."));
+        } catch (EntidadeNaoEncontradaException ex) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(AbstractResponse.error("Usuário não encontrado para o token informado.", "NOT_FOUND"));
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(AbstractResponse.error(ex.getMessage(), "INVALID_TOKEN"));
+        } catch (Exception ex) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(AbstractResponse.error("Erro interno ao redefinir a senha.", "INTERNAL_ERROR"));
+        }
+    }
+
+    @Override
+    public ResponseEntity<AbstractResponse<String>> validateResetToken(@RequestParam String token) {
+        try {
+            boolean valido = authService.isResetTokenValid(token);
+            if (valido) {
+                return ResponseEntity.ok(AbstractResponse.success("Token válido"));
+            } else {
+                return ResponseEntity.badRequest().body(AbstractResponse.error("Token inválido ou expirado", "TOKEN_INVALID"));
+            }
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(AbstractResponse.error("Token inválido ou expirado", "TOKEN_INVALID"));
         }
     }
 }
