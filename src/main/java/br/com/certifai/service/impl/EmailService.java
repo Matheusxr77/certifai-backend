@@ -33,7 +33,7 @@ public class EmailService {
         Email from = new Email(fromEmail);
         Email to = new Email(toEmail);
         String subject = "Verifique seu E-mail para Ativar sua Conta";
-        String verificationLink = "https://certifai-front-ruby.vercel.app/verify?token=" + token;
+        String verificationLink = "https://certifai-front-ruby.vercel.app/auth/verify?token=" + token;
 
         String htmlContent = String.format("""
         <html>
@@ -85,7 +85,7 @@ public class EmailService {
         Email from = new Email(fromEmail);
         Email to = new Email(toEmail);
         String subject = "Recuperação de Senha - CertifAI";
-        String resetLink = "https://certifai-front-ruby.vercel.app/reset-password?token=" + token;
+        String resetLink = "https://certifai-front-ruby.vercel.app/auth/reset-password?token=" + token;
 
         String htmlContent = String.format("""
         <html>
