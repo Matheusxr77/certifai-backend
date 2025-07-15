@@ -12,6 +12,7 @@ import br.com.certifai.response.AbstractResponse;
 import br.com.certifai.service.interfaces.IAuthService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.net.URI;
 import java.util.Optional;
 
 @RestController
@@ -48,6 +50,8 @@ public class AuthController implements AuthApi {
     @Override
     public ResponseEntity<String> verifyEmail(@RequestParam String token) {
         if (authService.verifyEmail(token)) {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setLocation(URI.create("https://certifai-front-ruby.vercel.app/verification-success"));
             return ResponseEntity.ok("Seu e-mail foi verificado com sucesso! Você já pode fazer login.");
         } else {
             return ResponseEntity.badRequest().body("Token de verificação inválido ou expirado.");
