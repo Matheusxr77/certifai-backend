@@ -94,7 +94,7 @@ public interface AuthApi {
             @ApiResponse(responseCode = "200", description = "Token válido"),
             @ApiResponse(responseCode = "400", description = "Token inválido ou expirado")
     })
-    @GetMapping("/validate-reset-token")
+    @PostMapping("/validate-reset-token")
     ResponseEntity<AbstractResponse<String>> validateResetToken(
             @Parameter(description = "Token JWT para validação", required = true)
             @RequestParam String token
