@@ -28,8 +28,8 @@ public enum Endpoints {
     USUARIOS_LISTAR("/usuarios/listar"),
     USUARIO_ALTERAR_SENHA("usuarios/{id}/senha"),
     USUARIO_LOGADO("/auth/me"),
-    RECUPERAR_TOKEN("auth/validate-reset-token"),
-    RECUPERAR_SENHA("auth/reset-password"),
+    RECUPERAR_TOKEN("/auth/validate-reset-token"),
+    RECUPERAR_SENHA("/auth/reset-password"),
 
     STATIC_RESOURCES("/assets/**", "/css/**", "/js/**");
 
