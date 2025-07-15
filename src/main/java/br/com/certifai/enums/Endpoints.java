@@ -17,7 +17,7 @@ public enum Endpoints {
     AUTH_LOGIN("/auth/login"),
     AUTH_LOGOUT("/auth/logout"),
     USUARIO_CRIAR("/auth/register"),
-    VERIFICAR_USUARIO("/auth/verify"),
+    VERIFICAR_USUARIO("/certifai/auth/verify"),
     OAUTH2("/login/oauth2/**", "/oauth2/**"),
     ESQUECI_SENHA("/auth/esqueci-senha"),
     DASHBOARD("/dashboard"),
