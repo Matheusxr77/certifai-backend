@@ -33,7 +33,7 @@ public class EmailService {
         Email from = new Email(fromEmail);
         Email to = new Email(toEmail);
         String subject = "Verifique seu E-mail para Ativar sua Conta";
-        String verificationLink = baseUrl + "/auth/verify?token=" + token;
+        String verificationLink = "https://certifai-backend.onrender.com/verify?token=" + token;
 
         String htmlContent = String.format("""
         <html>
@@ -85,7 +85,7 @@ public class EmailService {
         Email from = new Email(fromEmail);
         Email to = new Email(toEmail);
         String subject = "Recuperação de Senha - CertifAI";
-        String resetLink = baseUrl + "/reset-password?token=" + token;
+        String resetLink = "https://certifai-backend.onrender.com/reset-password?token=" + token;
 
         String htmlContent = String.format("""
         <html>
