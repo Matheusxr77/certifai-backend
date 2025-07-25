@@ -58,6 +58,34 @@ src/
 └── test/                         # Testes automatizados
 ```
 
+## 🏗️ Arquitetura
+
+O back-end CertifAI segue uma arquitetura modular baseada no padrão MVC + Service Layer, com forte separação de responsabilidades e organização por pacotes funcionais.
+
+- **Model** (model/) – Entidades JPA que representam tabelas do banco de dados.
+- **DTO** (dto/, requests/, response/) – Objetos de transferência de dados entre camadas, com propósito específico de entrada (requests) e saída (response).
+- **Controller** (controller/) – Pontos de entrada da API (REST controllers).
+- **Service** (service/) – Camada intermediária de lógica de negócio.
+   - interfaces/ – Contratos (interfaces) de serviços.
+   - impl/ – Implementações concretas dos serviços.
+- **Repository** (repository/) – Interfaces Spring Data JPA para acesso ao banco.
+- **Security** (config/security/) – Toda configuração de autenticação, JWT, OAuth2 e controle de acesso.
+- **Exception** (exception/) – Tratamento global de exceções com detalhes customizados.
+- **Mappers** (mappers/) – Conversão entre entidades e DTOs via MapStruct.
+- **Util** (util/) – Classes utilitárias como JwtUtil.
+- **Validation** (config/validation/) – Configurações de validação assíncrona.
+- **WebConfig** (config/web/) – Configurações CORS e Swagger/OpenAPI.
+
+### Características Arquiteturais 
+- Separação rigorosa por responsabilidade
+- Autenticação com **OAuth2 (Google)** + **JWT**
+- Injeção de dependências com **Spring IoC**
+- Camada de serviços testável e reaproveitável
+- Uso de **DTOs** para controle de exposição de dados
+- Mapeamento automático entre entidade - **DTO com MapStruct**
+- Configurações desacopladas por ambiente via application.properties
+- Suporte a **Swagger** para documentação automática
+
 ## 🔐 Segurança
 
 O sistema implementa:
@@ -73,6 +101,16 @@ Inclui cobertura de testes com:
 
 - **JUnit 5**
 - **Spring Security Test**
+
+## 📋 Pré-requisitos
+
+- Java 21+
+- Maven 3.9+
+- PostgreSQL
+- Variáveis de ambiente (ou .env) com:
+  - DATASOURCE_URL, DATASOURCE_USERNAME, DATASOURCE_PASSWORD
+  - SENDGRID_API_KEY, JWT_SECRET
+  - CLIENT_ID, CLIENT_SECRET (Google OAuth)
 
 ## 🚀 Como Executar
 
