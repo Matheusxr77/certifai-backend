@@ -4,7 +4,6 @@ import br.com.certifai.enums.Categorias;
 import br.com.certifai.enums.Dificuldades;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 import java.util.List;
@@ -17,8 +16,7 @@ public class Questao {
     private Long id;
 
     @NotBlank(message = "Enunciado é obrigatório")
-    @Size(min = 3, max = 100, message = "Enunciado deve ter entre 3 e 100 caracteres")
-    @Column(nullable = false)
+    @Column(nullable = false,  columnDefinition = "TEXT")
     private String enunciado;
 
     @Enumerated(EnumType.STRING)

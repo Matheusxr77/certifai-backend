@@ -11,8 +11,6 @@ import lombok.NoArgsConstructor;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.JoinColumn;
 
-
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Builder
