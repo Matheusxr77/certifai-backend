@@ -12,6 +12,6 @@ import lombok.NoArgsConstructor;
 public class AlternativaDTO {
     private Long id;
     private String texto;
-    private String correta;
+    private boolean correta;
     private Long questaoId;
 }

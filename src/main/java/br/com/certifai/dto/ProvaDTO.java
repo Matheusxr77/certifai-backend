@@ -6,8 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
-
+import java.util.List;
 @Data
 @Builder
 @AllArgsConstructor
@@ -19,5 +18,5 @@ public class ProvaDTO {
     private Status status;
     private Long certificacaoId;
     private Long usuarioId;
-    private Long respostaId;
+    private List<Long> respostaIds;
 }
