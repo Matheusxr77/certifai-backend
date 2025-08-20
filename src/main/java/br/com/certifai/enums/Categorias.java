@@ -1,9 +1,10 @@
 package br.com.certifai.enums;
 
 public enum Categorias {
-    MULTIPLA_ESCOLHA("MÚLTIPLA ESCOLHA"),
-    DISSERTATIVA("DISSERTATIVA"),
-    VERDADEIRO_FALSO("VERDADEIRO OU FALSO");
+    NUVEM("COMPUTAÇÃO EM NUVEM"),
+    DEV("DESENVOLVIMENTO DE SOFTWARE"),
+    BANCO("BANCO DE DADOS"),
+    INFRA("INFRAESTRUTURA");
 
     private final String descricao;
 
