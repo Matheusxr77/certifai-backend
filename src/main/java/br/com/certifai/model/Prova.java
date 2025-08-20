@@ -7,7 +7,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 
 @Builder
 @AllArgsConstructor
@@ -25,6 +26,9 @@ public class Prova {
     @Column(name = "tempo")
     private Long tempo;
 
+    @Column(name = "comTempo")
+    private boolean comTempo = false;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Status status;
@@ -37,7 +41,6 @@ public class Prova {
     @JoinColumn(name = "usuario_id")
     private Usuario usuario;
 
-    @ManyToOne
-    @JoinColumn(name = "resposta")
-    private Resposta resposta;
+    @OneToMany(mappedBy = "prova", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<Resposta> respostas = new HashSet<>();
 }

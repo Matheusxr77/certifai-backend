@@ -2,6 +2,7 @@ package br.com.certifai.model;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -9,6 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Data
 @Entity
+@Builder
 public class Resposta {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -21,8 +23,8 @@ public class Resposta {
     @JoinColumn(name = "resposta_alternativa")
     private Alternativa alternativa;
 
-    @ManyToOne
-    @JoinColumn(name = "resposta_prova")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "prova_id", nullable = false)
     private Prova prova;
 
     @ManyToOne

@@ -125,7 +125,7 @@ class CertificacaoServiceTest {
     @DisplayName("Deve deletar uma certificação com sucesso")
     void deveDeletarCertificacao_quandoEncontrada() {
         when(certificacaoRepository.existsById(1L)).thenReturn(true);
-        doNothing().when(certificacaoRepository).deleteById(1L); // 'doNothing' para métodos void
+        doNothing().when(certificacaoRepository).deleteById(1L);
 
         certificacaoService.delete(1L);
 

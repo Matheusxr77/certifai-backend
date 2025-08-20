@@ -2,7 +2,6 @@ package br.com.certifai.model;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -21,14 +20,11 @@ public class Alternativa {
     private Long id;
 
     @NotBlank(message = "Texto é obrigatório")
-    @Size(min = 3, max = 100, message = "Texto deve ter entre 3 e 100 caracteres")
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String texto;
 
-    @NotBlank(message = "Resposta correta é obrigatório")
-    @Size(min = 1, max = 100, message = "Resposta correta deve ter entre 1 e 100 caracteres")
-    @Column(nullable = false)
-    private String correta;
+    @NotBlank(message = "Resposta correta é obrigatória")
+    private boolean correta;
 
     @OneToMany(mappedBy = "alternativa",  cascade = CascadeType.ALL, orphanRemoval = true)
     List<Resposta> respostas;
