@@ -23,7 +23,6 @@ public class Alternativa {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String texto;
 
-    @NotBlank(message = "Resposta correta é obrigatória")
     private boolean correta;
 
     @OneToMany(mappedBy = "alternativa",  cascade = CascadeType.ALL, orphanRemoval = true)
