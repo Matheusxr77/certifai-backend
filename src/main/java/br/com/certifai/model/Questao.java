@@ -4,12 +4,18 @@ import br.com.certifai.enums.Categorias;
 import br.com.certifai.enums.Dificuldades;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 
 @Data
 @Entity
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class Questao {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
