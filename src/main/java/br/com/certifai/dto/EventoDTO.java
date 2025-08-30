@@ -19,5 +19,5 @@ public class EventoDTO {
     private LocalDateTime inicio;
     private LocalDateTime fim;
     private Long usuarioId;
-    private List<Long> certificacaoIds;
+    private List<Long> itensIds;
 }

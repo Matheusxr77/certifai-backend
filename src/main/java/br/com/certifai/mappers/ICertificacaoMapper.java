@@ -18,4 +18,11 @@ public interface ICertificacaoMapper {
     @Mapping(target = "eventoIds", expression = "java(entity.getEventos() != null ? entity.getEventos().stream().map(e -> e.getId()).toList() : null)")
     @Mapping(target = "questaoIds", expression = "java(entity.getQuestoes() != null ? entity.getQuestoes().stream().map(q -> q.getId()).toList() : null)")
     CertificacaoDTO toDTO(Certificacao entity);
+
+    default Certificacao fromId(Long id) {
+        if (id == null) return null;
+        Certificacao c = new Certificacao();
+        c.setId(id);
+        return c;
+    }
 }
