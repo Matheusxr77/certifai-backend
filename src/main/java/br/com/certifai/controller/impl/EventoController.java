@@ -74,12 +74,7 @@ public class EventoController implements EventoApi {
     @Override
     public ResponseEntity<EventoDTO> editarEvento(@PathVariable("eventoId") Long eventoId, @RequestBody EventoDTO dto) {
 
-        System.out.println("=== DTO RECEBIDO NO CONTROLLER ===");
-        System.out.println("Evento ID: " + eventoId);
-        System.out.println("Fim: " + dto.getFim());
-        System.out.println("Inicio: " + dto.getInicio());
-        System.out.println("Título: " + dto.getTitulo());
-        System.out.println("Descrição: " + dto.getDescricao());
+        
         try {
             Evento eventoAtualizado = eventoService.editarEvento(eventoId, dto);
             return ResponseEntity.ok(eventoMapper.toDTO(eventoAtualizado));
