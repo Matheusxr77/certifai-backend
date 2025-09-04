@@ -1,0 +1,104 @@
+package br.com.certifai.service.impl;
+
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.crossstore.ChangeSetPersister.NotFoundException;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import br.com.certifai.dto.ChecklistDTO;
+import br.com.certifai.dto.ItemChecklistDTO;
+import br.com.certifai.exception.EntidadeNaoEncontradaException;
+import br.com.certifai.mappers.IChecklistMapper;
+import br.com.certifai.model.Certificacao;
+import br.com.certifai.model.Checklist;
+import br.com.certifai.model.ItemChecklist;
+import br.com.certifai.model.Usuario;
+import br.com.certifai.repository.CertificacaoRepository;
+import br.com.certifai.repository.ChecklistRepository;
+import br.com.certifai.repository.UsuarioRepository;
+import br.com.certifai.service.interfaces.IChecklistService;
+import lombok.RequiredArgsConstructor;
+
+@Service
+@RequiredArgsConstructor
+public class ChecklistService implements IChecklistService {
+    private final ChecklistRepository checklistRepository;
+    private final CertificacaoRepository certificacaoRepository;
+    private final AuthService usuarioService;
+    private final IChecklistMapper checklistMapper;
+    private final ApplicationEventPublisher eventPublisher;
+
+    @Override
+    @Transactional
+    public Checklist createChecklist(Checklist checklist) {
+        System.out.println(checklist);
+        if (checklist.getCertificacao() == null || checklist.getCertificacao().getId() == null) {
+            throw new IllegalArgumentException("A ID da Certificação é obrigatória para criar um Checklist.");
+        }
+
+        Certificacao certificacao = certificacaoRepository.findById(checklist.getCertificacao().getId())
+                .orElseThrow(() -> new EntidadeNaoEncontradaException("Certificação não encontrada"));
+
+        checklist.setCertificacao(certificacao);
+        Usuario usuarioLogado = usuarioService.getPrincipal()
+                .orElseThrow(() -> new EntidadeNaoEncontradaException("Usuário logado não encontrado no sistema."));
+
+        checklist.setUsuario(usuarioLogado);
+
+        Checklist salvo = checklistRepository.save(checklist);
+
+        // eventPublisher.publishEvent(new ChecklistCriadoEvent(this, salvo));
+
+        return salvo;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<Checklist> getChecklistById(Long id) {
+        return checklistRepository.findById(id);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Checklist> getAllChecklists() {
+        return checklistRepository.findAll();
+    }
+
+    @Override
+    @Transactional
+    public Checklist updateChecklist(Long id, Checklist checklist) {
+        Checklist existente = getChecklistById(id)
+                .orElseThrow(() -> new EntidadeNaoEncontradaException("Checklist não encontrada com o ID: " + id));
+
+        existente.setTitulo(checklist.getTitulo());
+        existente.setDescricao(checklist.getDescricao());
+
+        if (checklist.getCertificacao() != null &&
+                !checklist.getCertificacao().getId().equals(existente.getCertificacao().getId())) {
+
+            Certificacao novaCertificacao = certificacaoRepository.findById(checklist.getCertificacao().getId())
+                    .orElseThrow(() -> new EntidadeNaoEncontradaException("Certificação não encontrada"));
+            existente.setCertificacao(novaCertificacao);
+        }
+
+        Checklist atualizado = checklistRepository.save(existente);
+
+        // eventPublisher.publishEvent(new ChecklistAtualizadoEvent(this, atualizado));
+
+        return atualizado;
+    }
+
+    @Override
+    @Transactional
+    public void deleteChecklist(Long id) {
+        Checklist checklist = getChecklistById(id)
+                .orElseThrow(() -> new EntidadeNaoEncontradaException("Checklist não encontrada com o ID: " + id));
+
+        checklistRepository.delete(checklist);
+
+        // eventPublisher.publishEvent(new ChecklistDeletadoEvent(this, id));
+    }
+}

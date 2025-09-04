@@ -36,6 +36,6 @@ public class Evento {
     @Column(nullable = false)
     private LocalDateTime fim;
 
-    @ManyToMany(mappedBy = "eventos")
-    private List<Certificacao> certificacoes;
+    @OneToMany(mappedBy = "evento")
+    private List<ItemChecklist> itens;
 }

@@ -16,5 +16,6 @@ public class ChecklistDTO {
     private String titulo;
     private String descricao;
     private Long certificacaoId;
+    private Long usuarioId;
     private List<Long> itemChecklistIds;
 }

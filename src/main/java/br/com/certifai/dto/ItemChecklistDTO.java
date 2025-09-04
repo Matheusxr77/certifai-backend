@@ -18,4 +18,5 @@ public class ItemChecklistDTO {
     private LocalDateTime conclusao;
     private Long checklistId;
     private Long usuarioId;
+    private Long eventoId;
 }
