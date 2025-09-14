@@ -34,25 +34,32 @@ public class ChecklistService implements IChecklistService {
     @Override
     @Transactional
     public Checklist createChecklist(Checklist checklist) {
-        System.out.println(checklist);
         if (checklist.getCertificacao() == null || checklist.getCertificacao().getId() == null) {
-            throw new IllegalArgumentException("A ID da Certificação é obrigatória para criar um Checklist.");
+            throw new IllegalArgumentException("É obrigatório informar o ID da certificação.");
         }
+        System.out.println("Checklist recebido no service: " + checklist);
 
-        Certificacao certificacao = certificacaoRepository.findById(checklist.getCertificacao().getId())
-                .orElseThrow(() -> new EntidadeNaoEncontradaException("Certificação não encontrada"));
 
-        checklist.setCertificacao(certificacao);
+        Certificacao certificacaoGerenciada = certificacaoRepository.findById(checklist.getCertificacao().getId())
+                .orElseThrow(() -> new EntidadeNaoEncontradaException(
+                        "Certificação com ID " + checklist.getCertificacao().getId() + " não encontrada."));
+
         Usuario usuarioLogado = usuarioService.getPrincipal()
-                .orElseThrow(() -> new EntidadeNaoEncontradaException("Usuário logado não encontrado no sistema."));
+                .orElseThrow(() -> new EntidadeNaoEncontradaException("Usuário logado não encontrado."));
 
+        checklist.setId(null);
+
+        checklist.setCertificacao(certificacaoGerenciada);
         checklist.setUsuario(usuarioLogado);
 
-        Checklist salvo = checklistRepository.save(checklist);
+        if (checklist.getItensChecklist() != null) {
+            checklist.getItensChecklist().forEach(item -> {
+                item.setId(null);
+                item.setChecklist(checklist);
+            });
+        }
 
-        // eventPublisher.publishEvent(new ChecklistCriadoEvent(this, salvo));
-
-        return salvo;
+        return checklistRepository.save(checklist);
     }
 
     @Override
@@ -73,7 +80,7 @@ public class ChecklistService implements IChecklistService {
         Checklist existente = getChecklistById(id)
                 .orElseThrow(() -> new EntidadeNaoEncontradaException("Checklist não encontrada com o ID: " + id));
 
-        existente.setTitulo(checklist.getTitulo());
+        existente.setNome(checklist.getNome());
         existente.setDescricao(checklist.getDescricao());
 
         if (checklist.getCertificacao() != null &&

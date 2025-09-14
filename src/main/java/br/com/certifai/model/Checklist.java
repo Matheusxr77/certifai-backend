@@ -8,12 +8,13 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
 @Data
 @Entity
 public class Checklist {
@@ -21,24 +22,29 @@ public class Checklist {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank(message = "Título é obrigatório")
-    @Size(min = 3, max = 100, message = "Título deve ter entre 3 e 100 caracteres")
-    @Column(nullable = false)
-    private String titulo;
-
-    @Column(name = "descricao")
+    private String nome;
     private String descricao;
 
-    @OneToMany(mappedBy = "checklist",  cascade = CascadeType.ALL,  orphanRemoval = true)
-    private List<ItemChecklist> itensChecklist;
-
-    @ManyToOne
-    @JoinColumn(name = "certificacao_id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "certificacao_id", nullable = false)
     private Certificacao certificacao;
 
-    @ManyToOne
-    @JoinColumn(name = "usuario_id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "usuario_id", nullable = false)
     private Usuario usuario;
+
+    @OneToMany(
+        mappedBy = "checklist", 
+        cascade = CascadeType.ALL, 
+        orphanRemoval = true, 
+        fetch = FetchType.EAGER 
+    )
+    private List<ItemChecklist> itensChecklist = new ArrayList<>();
+
+    public void addItem(ItemChecklist item) {
+        itensChecklist.add(item);
+        item.setChecklist(this);
+    }
 
 
 }

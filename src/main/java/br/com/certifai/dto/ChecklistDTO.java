@@ -7,15 +7,19 @@ import lombok.NoArgsConstructor;
 
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 @Data
-@Builder
+
 @AllArgsConstructor
 @NoArgsConstructor
 public class ChecklistDTO {
     private Long id;
-    private String titulo;
+    private String nome;
     private String descricao;
-    private Long certificacaoId;
-    private Long usuarioId;
-    private List<Long> itemChecklistIds;
+
+    @JsonProperty("certificacao_id")
+    private Long certificacaoId; 
+    private Long usuarioId;      
+    private List<ItemChecklistDTO> itensChecklist;
 }
