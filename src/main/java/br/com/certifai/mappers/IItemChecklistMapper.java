@@ -10,14 +10,14 @@ import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring")
 public interface IItemChecklistMapper {
+    
+    @Mapping(target = "id", ignore = true)
     @Mapping(target = "checklist", ignore = true)
-    @Mapping(target = "usuario", ignore = true)
-    @Mapping(target = "evento", ignore = true) // vamos setar no service
     ItemChecklist toEntity(ItemChecklistDTO dto);
 
-    @Mapping(target = "checklistId", source = "checklist.id")
-    @Mapping(target = "usuarioId", source = "usuario.id")
-    @Mapping(target = "eventoId", source = "evento.id") // NOVO
+    // @Mapping(target = "checklistId", source = "checklist.id")
+    // @Mapping(target = "usuarioId", source = "usuario.id")
+    // @Mapping(target = "eventoId", source = "evento.id") 
     ItemChecklistDTO toDTO(ItemChecklist entity);
 
     List<ItemChecklistDTO> toDtoList(List<ItemChecklist> itens);

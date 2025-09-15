@@ -8,37 +8,33 @@ import br.com.certifai.repository.UsuarioRepository;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
 import org.mapstruct.Named;
+import org.mapstruct.factory.Mappers;
 import org.springframework.beans.factory.annotation.Autowired;
 
-@Mapper(componentModel = "spring", uses = { ICertificacaoMapper.class, IUsuarioMapper.class })
+@Mapper(componentModel = "spring")
 public interface IChecklistMapper {
 
-    @Mapping(target = "itensChecklist", ignore = true)
-    @Mapping(target = "certificacao", source = "certificacaoId", qualifiedByName = "mapCertificacao")
-    @Mapping(target = "usuario", source = "usuarioId")
+    @Mapping(target = "certificacao", expression = "java(toCertificacao(dto.getCertificacaoId()))")
+    @Mapping(target = "usuario", expression = "java(toUsuario(dto.getUsuarioId()))")
     Checklist toEntity(ChecklistDTO dto);
 
+    @Mapping(target = "certificacaoId", source = "certificacao.id")
     @Mapping(target = "usuarioId", source = "usuario.id")
     ChecklistDTO toDTO(Checklist entity);
 
-    default Usuario map(Long usuarioId) {
-        if (usuarioId == null) {
-            return null;
-        }
-        Usuario usuario = new Usuario();
-        usuario.setId(usuarioId);
-        return usuario;
-
+    default Certificacao toCertificacao(Long id) {
+        if (id == null) return null;
+        Certificacao c = new Certificacao();
+        c.setId(id);
+        return c;
     }
 
-    @Named("mapCertificacao")
-    default Certificacao mapCertificacao(Long id) {
-        if (id == null)
-            return null;
-        Certificacao certificacao = new Certificacao();
-        certificacao.setId(id);
-        return certificacao;
+    default Usuario toUsuario(Long id) {
+        if (id == null) return null;
+        Usuario u = new Usuario();
+        u.setId(id);
+        return u;
     }
-
 }

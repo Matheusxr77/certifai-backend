@@ -6,10 +6,10 @@ import lombok.Data;
 
 import java.time.LocalDateTime;
 
-
 @Data
 @Entity
 public class ItemChecklist {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -17,15 +17,15 @@ public class ItemChecklist {
     @Column(name = "descricao")
     private String descricao;
 
+    @NotNull(message = "O campo conclusão não pode ser nulo")
     @Column(name = "concluido", nullable = false)
     private boolean concluido = false;
 
-    @NotNull(message = "O campo conclusão não pode ser nulo")
     @Column(nullable = false)
     private LocalDateTime conclusao;
 
-    @ManyToOne
-    @JoinColumn(name = "checklist_id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "checklist_id", nullable = false)
     private Checklist checklist;
 
     @ManyToOne
